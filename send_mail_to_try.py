@@ -1,6 +1,7 @@
 import time
 import locale
 import smtplib
+import schedule
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
@@ -39,4 +40,8 @@ def send_mail_results(result, last_execution):
         print("Something went wrong...")
 
 
-send_mail_results(True, "17 de Diciembre de 2022 a las 09:00")
+schedule.every(5).minutes.do(send_mail_results, True, "17 de Diciembre de 2022 a las 09:00")
+
+while True:
+    schedule.run_pending()
+    time.sleep(60) # wait one minute
