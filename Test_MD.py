@@ -8,18 +8,18 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from datetime import datetime as dt
+from local_settings import *
 
+user = MD_USER
+pwd = MD_PWD
 
-user = ""
-pwd = ""
-
-# ser = Service(executable_path=r"C:\Users\Enrique Urrutia\Desktop\driver\chromedriver.exe")
-ser = Service(executable_path=r"~/root/chromedriver/chromedriver")
+ser = Service(executable_path=r"C:\Users\Enrique Urrutia\Desktop\driver\chromedriver.exe")
+# ser = Service(executable_path=r"~/root/chromedriver/chromedriver")
 op = webdriver.ChromeOptions()
 op.add_argument('headless')
 op.add_argument('--no-sandbox')
 op.add_argument('--disable-dev-shm-usage')
-op.add_argument("--remote-debugging-port=9222")
+# op.add_argument("--remote-debugging-port=9222")
 
 driver = webdriver.Chrome(service=ser, options=op)
 driver.get("https://patagonia.linets.cl/admin/md_shopify/inventory/")
@@ -57,8 +57,8 @@ def send_mail_results(result, last_execution):
       "",
       body
     ])
-    gmail_user = ''
-    gmail_password = ''
+    gmail_user = GMAIL_USER
+    gmail_password = GMAIL_PWD
     try:
         server = smtplib.SMTP('smtp.gmail.com', 587)
         server.ehlo()
