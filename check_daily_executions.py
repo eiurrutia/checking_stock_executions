@@ -16,14 +16,13 @@ from local_settings import *
 user = MD_USER
 pwd = MD_PWD
 
-# ser = Service(executable_path=r"~/root/chromedriver/chromedriver")
-ser = Service(executable_path=r"C:\Users\Enrique Urrutia\Desktop\driver\chromedriver.exe")
+ser = Service(executable_path=r"~/root/chromedriver/chromedriver")
 
 op = webdriver.ChromeOptions()
 op.add_argument('headless')
 op.add_argument('--no-sandbox')
 op.add_argument('--disable-dev-shm-usage')
-# op.add_argument("--remote-debugging-port=9222")
+op.add_argument("--remote-debugging-port=9222")
 
 driver = webdriver.Chrome(service=ser, options=op)
 
@@ -112,12 +111,10 @@ def check_correct_execution():
 
 
 def __main__():
-    schedule.every(5).minutes.do(check_correct_execution)
-    # schedule.every().day.at("10:00").do(check_correct_execution)
+    schedule.every().day.at("10:00").do(check_correct_execution)
     while True:
         schedule.run_pending()
-        time.sleep(60)
-        # time.sleep(600)
+        time.sleep(600)
 
 
 __main__()
