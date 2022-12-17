@@ -40,7 +40,10 @@ def send_mail_results(result, last_execution):
         print("Something went wrong...")
 
 
-schedule.every(5).minutes.do(send_mail_results, True, "17 de Diciembre de 2022 a las 09:00")
+def job():
+    send_mail_results(True, "17 de Diciembre de 2022 a las 09:00")
+
+schedule.every(5).minutes.do(job)
 
 while True:
     schedule.run_pending()
