@@ -16,18 +16,19 @@ from local_settings import *
 user = MD_USER
 pwd = MD_PWD
 
-ser = Service(executable_path=r"~/root/chromedriver/chromedriver")
 
-op = webdriver.ChromeOptions()
-op.add_argument('headless')
-op.add_argument('--no-sandbox')
-op.add_argument('--disable-dev-shm-usage')
-op.add_argument("--remote-debugging-port=9222")
+def set_up_driver():
+    ser = Service(executable_path=r"~/root/chromedriver/chromedriver")
+    op = webdriver.ChromeOptions()
+    op.add_argument('headless')
+    op.add_argument('--no-sandbox')
+    op.add_argument('--disable-dev-shm-usage')
+    op.add_argument("--remote-debugging-port=9222")
 
-driver = webdriver.Chrome(service=ser, options=op)
+    return webdriver.Chrome(service=ser, options=op)
 
 
-def check_login_required():
+def check_login_required(driver):
     try:
         return WebDriverWait(driver, 1).until(
             EC.visibility_of_element_located((By.XPATH, "//input[@id='id_username']"))
@@ -37,13 +38,13 @@ def check_login_required():
         return False
 
 
-def get_last_middleware_execution():
+def get_last_middleware_execution(driver):
     driver.get("https://patagonia.linets.cl/admin/azure_sql/erpstock/")
     driver.maximize_window()
     return driver.find_element("xpath", "(//td[contains(@class,'field-syncstartdatetime nowrap')])[1]").text
 
 
-def get_wms_service_date():
+def get_wms_service_date(driver):
     driver.get("https://patagonia.linets.cl/admin/wms/wmsstock/")
     driver.maximize_window()
     return driver.find_element("xpath", "(//td[contains(@class,'field-registered_dt nowrap')])[1]").text
@@ -107,17 +108,18 @@ def send_mail_results(result, last_execution, wms_service_date):
 
 
 def check_correct_execution():
+    driver = set_up_driver()
     driver.get("https://patagonia.linets.cl/admin/md_shopify/inventory/")
 
-    login = check_login_required()
+    login = check_login_required(driver)
     if login:
         login.send_keys(user + Keys.TAB + pwd + Keys.TAB + Keys.ENTER)
 
-    last_execution_date = get_last_middleware_execution()
+    last_execution_date = get_last_middleware_execution(driver)
     send_mail_results(
         check_execution_is_today(last_execution_date),
         parse_date_to_correct_timezone(last_execution_date),
-        get_wms_service_date()
+        get_wms_service_date(driver)
     )
     if check_execution_is_today(last_execution_date):
         print("Ejecución correcta!")
