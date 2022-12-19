@@ -1,7 +1,6 @@
 import time
 import locale
 import smtplib
-import schedule
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
@@ -128,15 +127,8 @@ def check_correct_execution():
     driver.close()
 
 
-def main():
-    schedule.every().day.at("10:00").do(check_correct_execution)
-    while True:
-        schedule.run_pending()
-        time.sleep(600)
-
-
 if __name__ == "__main__":
-    main()
+    check_correct_execution()
 
 
 
