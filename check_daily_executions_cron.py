@@ -7,6 +7,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import SessionNotCreatedException, WebDriverException
+from webdriver_manager.chrome import ChromeDriverManager
 from datetime import datetime as dt
 from dateutil import tz
 from local_settings import *
@@ -17,15 +19,20 @@ pwd = MD_PWD
 
 
 def set_up_driver():
-    ser = Service(executable_path=r"~/root/chromedriver/chromedriver")
-    op = webdriver.ChromeOptions()
-    op.add_argument('headless')
-    op.add_argument('--no-sandbox')
-    op.add_argument('--disable-dev-shm-usage')
-    op.add_argument("--remote-debugging-port=4444")
+    try:
+        #ser = Service(executable_path=r"~/root/chromedriver/chromedriver")
+        #ser = Service(executable_path=r"~/snap/bin/chromium.chromedriver")
+        ser = Service(ChromeDriverManager(version="108.0.5359.71").install())
+        op = webdriver.ChromeOptions()
+        op.add_argument('headless')
+        op.add_argument('--no-sandbox')
+        op.add_argument('--disable-dev-shm-usage')
+        op.add_argument("--remote-debugging-port=4444")
 
-    return webdriver.Chrome(service=ser, options=op)
-
+        return webdriver.Chrome(service=ser, options=op)
+    except (SessionNotCreatedException, WebDriverException) as err:
+        print(f"{dt.now()} - {err.msg}")
+        return False
 
 def check_login_required(driver):
     try:
@@ -108,6 +115,7 @@ def send_mail_results(result, last_execution, wms_service_date):
 
 def check_correct_execution():
     driver = set_up_driver()
+    if not driver: return
     driver.get("https://patagonia.linets.cl/admin/md_shopify/inventory/")
 
     login = check_login_required(driver)
