@@ -87,28 +87,22 @@ def check_sku_example_with_difference(driver):
     example_inventory_id = None
     # Will check max 6 pages to the inventory table.
     try:
-        for actual_page in range(1, 6):
+        for actual_page in range(0, 100):
             driver.get(f"{url}/md_shopify/inventory/?location_name=CD&o=-4&p={actual_page}&q=")
             # There are max 100 rows for each page in inventory table paginated.
-            for row in range(1, 100):
-                stock_i = WebDriverWait(driver, 4).until(
-                    EC.visibility_of_element_located((By.XPATH, f"(//td[contains(@class ,'field-quantity')])[{row}]"))
-                )
-                stock_c = WebDriverWait(driver, 4).until(
+            inventory_table_element = \
+                WebDriverWait(driver, 4).until(
                     EC.visibility_of_element_located(
-                        (By.XPATH, f"(//td[contains(@class ,'field-new_quantity')])[{row}]"))
+                        (By.XPATH, f"(//*[@id='result_list'])/tbody"))
                 )
-                if stock_i.text != stock_c.text:
-                    example_sku = \
-                        WebDriverWait(driver, 4).until(
-                            EC.visibility_of_element_located(
-                                (By.XPATH, f"(//td[contains(@class ,'field-sku')])[{row}]"))
-                        ).text
-                    example_inventory_id = \
-                        WebDriverWait(driver, 4).until(
-                            EC.visibility_of_element_located(
-                                (By.XPATH, f"(//td[contains(@class ,'field-inventory_id')])[{row}]"))
-                        ).text
+            inventory_rows_list = [i.split() for i in inventory_table_element.text.split('\n')]
+            for i in inventory_rows_list:
+                # Compare Stock I. (index 3) with Stock C. (index 4)
+                if i[3] != i[4]:
+                    # Save sku (index 1) and shopify_inventory_id (index 0)
+                    example_sku = i[1]
+                    example_inventory_id = i[0]
+                    print(i)
                     break
             if example_sku:
                 print(f"{example_inventory_id} - {example_sku}")
