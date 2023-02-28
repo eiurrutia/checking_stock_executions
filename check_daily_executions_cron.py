@@ -10,6 +10,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions \
     import SessionNotCreatedException, WebDriverException, NoSuchElementException, TimeoutException
+from webdriver_manager.chrome import ChromeDriverManager
 from datetime import datetime as dt
 from dateutil import tz
 from local_settings import *
@@ -23,16 +24,13 @@ shop_URL = SHOP_URL
 
 def set_up_driver(local=False):
     try:
+        ser = Service(ChromeDriverManager().install())
+        op = webdriver.ChromeOptions()
         if local:
-            ser = Service(executable_path=r"C:\Users\Enrique Urrutia\Desktop\driver\chromedriver.exe")
-            op = webdriver.ChromeOptions()
             op.add_argument('headless')
             op.add_argument('--no-sandbox')
             op.add_argument('--disable-dev-shm-usage')
         else:
-            from webdriver_manager.chrome import ChromeDriverManager
-            ser = Service(ChromeDriverManager(version="108.0.5359.71").install())
-            op = webdriver.ChromeOptions()
             op.add_argument('headless')
             op.add_argument('--no-sandbox')
             op.add_argument('--disable-dev-shm-usage')
@@ -40,6 +38,7 @@ def set_up_driver(local=False):
         return webdriver.Chrome(service=ser, options=op)
     except (SessionNotCreatedException, WebDriverException) as err:
         print(f"{dt.now()} - {err.msg}")
+        send_error_mail(f"{dt.now()} - {err.msg}")
         return False
 
 
@@ -192,6 +191,37 @@ def send_mail_results(last_md_execution_date, wms_service_date, shopify_loaded_d
         print("Something went wrong...")
 
 
+def send_error_mail(message):
+    today_date_text = dt.now().strftime('%d/%m/%Y')
+    sent_from = 'keko.up9@gmail.com'
+    to = ['enrique.urrutia@patagonia.com']
+    subject = 'ERROR | ' + 'Execution report ' + today_date_text
+    body = """
+    ERROR
+    It was an error with the today's execution:
+    {}
+    """.format(message)
+    email_text = "\r\n".join([
+      "From: " + sent_from,
+      "To: enrique.urrutia@patagonia.com",
+      "Subject: " + subject,
+      "",
+      body
+    ])
+    gmail_user = GMAIL_USER
+    gmail_password = GMAIL_PWD
+    try:
+        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server.ehlo()
+        server.starttls()
+        server.login(gmail_user, gmail_password)
+        server.sendmail(sent_from, to, email_text)
+        server.close()
+        print('Email sent!')
+    except:
+        print("Something went wrong...")
+
+
 def check_correct_execution():
     driver = set_up_driver()
     if not driver: return
@@ -216,8 +246,3 @@ def check_correct_execution():
 
 if __name__ == "__main__":
     check_correct_execution()
-
-
-
-
-
