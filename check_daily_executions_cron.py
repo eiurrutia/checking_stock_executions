@@ -44,11 +44,12 @@ def set_up_driver(local=False):
 
 def check_login_required(driver):
     try:
-        return WebDriverWait(driver, 1).until(
+        return WebDriverWait(driver, 10).until(
             EC.visibility_of_element_located((By.XPATH, "//input[@id='id_username']"))
         )
-    except TimeoutError as err:
+    except (TimeoutError, WebDriverException) as err:
         print(err.msg)
+        send_error_mail(f"{dt.now()} - {err.msg}")
         return False
 
 
@@ -59,6 +60,7 @@ def get_last_middleware_execution(driver):
         return driver.find_element("xpath", "(//td[contains(@class,'field-syncstartdatetime nowrap')])[1]").text
     except NoSuchElementException as err:
         print(err.msg)
+        send_error_mail(f"{dt.now()} - {err.msg}")
         return False
 
 
@@ -69,6 +71,7 @@ def get_wms_service_date(driver):
         return driver.find_element("xpath", "(//td[contains(@class,'field-registered_dt nowrap')])[1]").text
     except NoSuchElementException as err:
         print(err.msg)
+        send_error_mail(f"{dt.now()} - {err.msg}")
         return False
 
 
@@ -109,6 +112,7 @@ def check_sku_example_with_difference(driver):
         return example_inventory_id, example_sku
     except (NoSuchElementException, TimeoutException) as err:
         print(err)
+        send_error_mail(f"{dt.now()} - {err.msg}")
         return False, False
 
 
@@ -120,7 +124,7 @@ def get_shopify_inventory_level_object(inventory_id):
         )['inventory_level']
     except (ValueError, AttributeError) as err:
         print(err)
-        print("Error")
+        send_error_mail(f"{dt.now()} - {err}")
         return False
 
 
