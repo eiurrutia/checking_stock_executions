@@ -9,7 +9,8 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions \
-    import SessionNotCreatedException, WebDriverException, NoSuchElementException, TimeoutException
+    import SessionNotCreatedException, WebDriverException, \
+    NoSuchElementException, TimeoutException
 from webdriver_manager.chrome import ChromeDriverManager
 from datetime import datetime as dt
 from dateutil import tz
@@ -45,7 +46,9 @@ def set_up_driver(local=False):
 def check_login_required(driver):
     try:
         return WebDriverWait(driver, 10).until(
-            EC.visibility_of_element_located((By.XPATH, "//input[@id='id_username']"))
+            EC.visibility_of_element_located(
+                (By.XPATH, "//input[@id='id_username']")
+            )
         )
     except (TimeoutError, WebDriverException) as err:
         print(err.msg)
@@ -57,7 +60,10 @@ def get_last_middleware_execution(driver):
     try:
         driver.get(f"{url}/azure_sql/erpstock/")
         driver.maximize_window()
-        return driver.find_element("xpath", "(//td[contains(@class,'field-syncstartdatetime nowrap')])[1]").text
+        return driver.find_element(
+            "xpath",
+            "(//td[contains(@class,'field-syncstartdatetime nowrap')])[1]"
+        ).text
     except NoSuchElementException as err:
         print(err.msg)
         send_error_mail(f"{dt.now()} - {err.msg}")
@@ -68,7 +74,10 @@ def get_wms_service_date(driver):
     try:
         driver.get(f"{url}/wms/wmsstock/")
         driver.maximize_window()
-        return driver.find_element("xpath", "(//td[contains(@class,'field-registered_dt nowrap')])[1]").text
+        return driver.find_element(
+            "xpath",
+            "(//td[contains(@class,'field-registered_dt nowrap')])[1]"
+        ).text
     except NoSuchElementException as err:
         print(err.msg)
         send_error_mail(f"{dt.now()} - {err.msg}")
@@ -90,14 +99,19 @@ def check_sku_example_with_difference(driver):
     # Will check max 6 pages to the inventory table.
     try:
         for actual_page in range(0, 100):
-            driver.get(f"{url}/md_shopify/inventory/?location_name=CD&o=-4&p={actual_page}&q=")
-            # There are max 100 rows for each page in inventory table paginated.
+            driver.get(
+                f"{url}/md_shopify/inventory"
+                "/?location_name=CD&o=-4&p={actual_page}&q="
+            )
+            # There are max 100 rows for each page in inventory table
             inventory_table_element = \
                 WebDriverWait(driver, 4).until(
                     EC.visibility_of_element_located(
                         (By.XPATH, f"(//*[@id='result_list'])/tbody"))
                 )
-            inventory_rows_list = [i.split() for i in inventory_table_element.text.split('\n')]
+            inventory_rows_list = [
+                i.split() for i in inventory_table_element.text.split('\n')
+            ]
             for i in inventory_rows_list:
                 # Compare Stock I. (index 3) with Stock C. (index 4)
                 if i[3] != i[4]:
@@ -120,7 +134,9 @@ def get_shopify_inventory_level_object(inventory_id):
     try:
         shopify.ShopifyResource.set_site(shop_URL)
         return json.loads(
-            shopify.InventoryLevel.find_first(inventory_item_ids=inventory_id, location_ids=5611814967).to_json()
+            shopify.InventoryLevel.find_first(
+                inventory_item_ids=inventory_id,
+                location_ids=5611814967).to_json()
         )['inventory_level']
     except (ValueError, AttributeError) as err:
         print(err)
@@ -144,12 +160,14 @@ def parse_date_to_correct_timezone(execution_date):
     return execution_datetime.strftime('%d %B %Y %H:%M')
 
 
-def send_mail_results(last_md_execution_date, wms_service_date, shopify_loaded_date, shopify_loaded_sku):
+def send_mail_results(last_md_execution_date, wms_service_date,
+                      shopify_loaded_date, shopify_loaded_sku):
     if last_md_execution_date and wms_service_date and shopify_loaded_date\
         and check_execution_is_today(last_md_execution_date)\
             and check_last_shopify_update_was_today(shopify_loaded_date):
         result = "Successful"
-        last_md_execution_date = parse_date_to_correct_timezone(last_md_execution_date)
+        last_md_execution_date = \
+            parse_date_to_correct_timezone(last_md_execution_date)
         print("Execution Successful!")
     else:
         result = "FAILED"
@@ -162,7 +180,7 @@ def send_mail_results(last_md_execution_date, wms_service_date, shopify_loaded_d
     body = """
     {}
     Online Stock execution result for today {} was {}.
-    Last Execution: {} 
+    Last Execution: {}
     WMS Execution: {}
     Shopify Loaded data: {} | {}
     """.format(
@@ -237,7 +255,8 @@ def check_correct_execution():
 
     inventory_id, sku = check_sku_example_with_difference(driver)
     inventory_level = get_shopify_inventory_level_object(inventory_id)
-    last_shopify_update = inventory_level['updated_at'] if inventory_level else False
+    last_shopify_update = \
+        inventory_level['updated_at'] if inventory_level else False
 
     send_mail_results(
         get_last_middleware_execution(driver),
