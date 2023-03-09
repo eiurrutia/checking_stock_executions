@@ -12,6 +12,7 @@ from selenium.common.exceptions \
     import SessionNotCreatedException, WebDriverException, \
     NoSuchElementException, TimeoutException
 from webdriver_manager.chrome import ChromeDriverManager
+from webdriver_manager.core.utils import ChromeType
 from datetime import datetime as dt
 from dateutil import tz
 from local_settings import *
@@ -25,13 +26,18 @@ shop_URL = SHOP_URL
 
 def set_up_driver(local=False):
     try:
-        ser = Service(ChromeDriverManager().install())
         op = webdriver.ChromeOptions()
         if local:
+            ser = Service(
+                ChromeDriverManager().install()
+            )
             op.add_argument('headless')
             op.add_argument('--no-sandbox')
             op.add_argument('--disable-dev-shm-usage')
         else:
+            ser = Service(
+                ChromeDriverManager(chrome_type=ChromeType.CHROMIUM).install()
+            )
             op.add_argument('headless')
             op.add_argument('--no-sandbox')
             op.add_argument('--disable-dev-shm-usage')
@@ -132,6 +138,7 @@ def check_sku_example_with_difference(driver):
 
 def get_shopify_inventory_level_object(inventory_id):
     try:
+        print('inventory_id: ', inventory_id)
         shopify.ShopifyResource.set_site(shop_URL)
         return json.loads(
             shopify.InventoryLevel.find_first(
