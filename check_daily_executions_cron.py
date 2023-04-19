@@ -169,9 +169,8 @@ def parse_date_to_correct_timezone(execution_date):
 
 def send_mail_results(last_md_execution_date, wms_service_date,
                       shopify_loaded_date, shopify_loaded_sku):
-    if last_md_execution_date and wms_service_date and shopify_loaded_date\
-        and check_execution_is_today(last_md_execution_date)\
-            and check_last_shopify_update_was_today(shopify_loaded_date):
+    if last_md_execution_date and wms_service_date\
+            and check_execution_is_today(last_md_execution_date):
         result = "Successful"
         last_md_execution_date = \
             parse_date_to_correct_timezone(last_md_execution_date)
@@ -187,9 +186,9 @@ def send_mail_results(last_md_execution_date, wms_service_date,
     body = """
     {}
     Online Stock execution result for today {} was {}.
-    Last Execution: {}
-    WMS Execution: {}
-    Shopify Loaded data: {} | {}
+    -Last ERP Execution: {}
+    -Last WMS Execution: {}
+    -Last Shopify Loaded data: {} | {}
     """.format(
         result,
         today_date_text,
@@ -261,7 +260,9 @@ def check_correct_execution():
         login.send_keys(user + Keys.TAB + pwd + Keys.TAB + Keys.ENTER)
 
     inventory_id, sku = check_sku_example_with_difference(driver)
-    inventory_level = get_shopify_inventory_level_object(inventory_id)
+    inventory_level = \
+        get_shopify_inventory_level_object(inventory_id)\
+        if inventory_id else False
     last_shopify_update = \
         inventory_level['updated_at'] if inventory_level else False
 
