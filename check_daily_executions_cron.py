@@ -181,8 +181,8 @@ def send_mail_results(last_md_execution_date, wms_service_date,
         print("Execution Failed!!")
 
     today_date_text = dt.now().strftime('%d/%m/%Y')
-    sent_from = 'keko.up9@gmail.com'
-    to = ['enrique.urrutia@patagonia.com']
+    sent_from = GMAIL_USER
+    to = GMAIL_RECIPIENTS
     subject = result + ' | ' + 'Execution report ' + today_date_text
     body = """
     {}
@@ -201,7 +201,7 @@ def send_mail_results(last_md_execution_date, wms_service_date,
     )
     email_text = "\r\n".join([
       "From: " + sent_from,
-      "To: enrique.urrutia@patagonia.com",
+      "To: " + ", ".join(to),
       "Subject: " + subject,
       "",
       body
@@ -222,8 +222,8 @@ def send_mail_results(last_md_execution_date, wms_service_date,
 
 def send_error_mail(message):
     today_date_text = dt.now().strftime('%d/%m/%Y')
-    sent_from = 'keko.up9@gmail.com'
-    to = ['enrique.urrutia@patagonia.com']
+    sent_from = GMAIL_USER
+    to = GMAIL_RECIPIENTS
     subject = 'ERROR | ' + 'Execution report ' + today_date_text
     body = """
     ERROR
@@ -232,7 +232,7 @@ def send_error_mail(message):
     """.format(message)
     email_text = "\r\n".join([
       "From: " + sent_from,
-      "To: enrique.urrutia@patagonia.com",
+      "To: " + ", ".join(to),
       "Subject: " + subject,
       "",
       body
