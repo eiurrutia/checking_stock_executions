@@ -31,9 +31,11 @@ def set_up_driver(local=False):
             ser = Service(
                 ChromeDriverManager().install()
             )
-            op.add_argument('headless')
+            op.add_argument('--headless')
             op.add_argument('--no-sandbox')
             op.add_argument('--disable-dev-shm-usage')
+            op.add_argument('--disable-gpu')
+            op.add_argument('--disable-software-rasterizer')
         else:
             ser = Service(
                 ChromeDriverManager(chrome_type=ChromeType.CHROMIUM).install()
@@ -215,8 +217,8 @@ def send_mail_results(last_md_execution_date, wms_service_date,
         server.sendmail(sent_from, to, email_text)
         server.close()
         print('Email sent!')
-    except:
-        print("Something went wrong...")
+    except (smtplib.SMTPException, smtplib.socket.gaierror) as e:
+        print(f"Something went wrong: {e}")
 
 
 def send_error_mail(message):
@@ -246,13 +248,14 @@ def send_error_mail(message):
         server.sendmail(sent_from, to, email_text)
         server.close()
         print('Email sent!')
-    except:
-        print("Something went wrong...")
+    except (smtplib.SMTPException, smtplib.socket.gaierror) as e:
+        print(f"Something went wrong: {e}")
 
 
 def check_correct_execution():
     driver = set_up_driver()
-    if not driver: return
+    if not driver:
+        return
     driver.get(f"{url}/md_shopify/inventory/")
 
     login = check_login_required(driver)
